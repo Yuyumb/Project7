@@ -3,6 +3,7 @@
 #include <string>
 #include <iostream>
 #include "User.h"
+#include "HashTable.h"
 
 struct Message
 {
@@ -18,12 +19,15 @@ struct Message
 class Chat
 {
 private:
-	std::vector<User> users;
-	std::vector<Message> messages;
+    HashTable user_table;
+    std::vector<User> user_list;
+    std::vector<Message> messages;
+
 public:
-	bool registerUser(const std::string& login, const std::string& password, const std::string& name);
-	bool login(const std::string& login, const std::string& password);
-	void sendMessage(const std::string& sender, const std::string& recipient, const std::string& message);
-	void displayMessage();
-	const std::vector<User>& getUsers() const;
+    bool registerUser(const std::string& login, const std::string& password, const std::string& name);
+    bool login(const std::string& login, const std::string& password);
+    void sendMessage(const std::string& sender, const std::string& recipientName, const std::string& message);
+    void displayMessage();
+
+    const std::vector<User>& getUsers() const;
 };

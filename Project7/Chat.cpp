@@ -1,89 +1,73 @@
 #include "Chat.h"
-#include <iostream>
 
-bool Chat::registerUser(const std::string& login, const std::string& password, const std::string& name)
-{
-	for (const auto& user : users)
-	{
-		if (user.login == login)
-		{
-			std::cout << "User with this login already exists." << std::endl;
-			return false;
-		}
-	}
+bool Chat::registerUser(const std::string& login, const std::string& password, const std::string& name) {
+    std::string password_hash = std::to_string(std::hash<std::string>{}(password));
 
-	users.emplace_back(login, password, name);
-	std::cout << "User " << name << " registered successfully." << std::endl;
-	return true;
+    if (!user_table.find(login).empty()) {
+        std::cout << "User with this login already exists." << std::endl;
+        return false;
+    }
+
+    user_table.add(login, password_hash);
+
+    user_list.emplace_back(login, password, name);
+    std::cout << "User " << name << " registered successfully." << std::endl;
+    return true;
 }
 
-bool Chat::login(const std::string& login, const std::string& password)
-{
-	for (const auto& user : users)
-	{
-		if (user.login == login && user.password == password)
-		{
-			std::cout << "Logged in as " << user.name << "." << std::endl;
-			return true;
-		}
-	}
+bool Chat::login(const std::string& login, const std::string& password) {
+    std::string password_hash = std::to_string(std::hash<std::string>{}(password));
+    std::string stored_hash = user_table.find(login);
 
-	std::cout << "Invalid login or password." << std::endl;
-	return false;
+    if (stored_hash == password_hash) {
+        std::cout << "Logged in successfully." << std::endl;
+        return true;
+    }
+    else {
+        std::cout << "Invalid login or password." << std::endl;
+        return false;
+    }
 }
 
-void Chat::sendMessage(const std::string& sender, const std::string& recipientName, const std::string& message)
-{
-	bool recipientFound = false;
-	std::string recipientLogin;
+void Chat::sendMessage(const std::string& sender, const std::string& recipientName, const std::string& message) {
+    bool recipientFound = false;
+    std::string recipientLogin;
 
-	for (const auto& user : users)
-	{
-		if (user.name == recipientName)
-		{
-			recipientFound = true;
-			recipientLogin = user.login;
+    for (const auto& user : user_list) {
+        if (user.name == recipientName) {
+            recipientFound = true;
+            recipientLogin = user.login;
+            break;
+        }
+    }
 
-			break;
-		}
-	}
-	if (!recipientFound)
-	{
-		std::cout << "User " << recipientName << " not found." << std::endl;
-		return;
-	}
+    if (!recipientFound) {
+        std::cout << "User " << recipientName << " not found." << std::endl;
+        return;
+    }
 
-	messages.emplace_back(sender, recipientLogin, message);
-	std::cout << "Message from " << sender << " to " << recipientName << ". " << message << std::endl;
-
+    messages.emplace_back(sender, recipientLogin, message);
+    std::cout << "Message from " << sender << " to " << recipientName << ": " << message << std::endl;
 }
 
-void Chat::displayMessage()
-{
-	for (const auto& message : messages)
-	{
-		std::string senderName;
-		for (const auto& user : users)
-		{
-			if (user.login == message.sender)
-			{
-				senderName = user.name;
-				break;
-			}
-		}
-		std::string recipienName;
-		for (const auto& user : users)
-		{
-			if (user.login == message.recipient)
-			{
-				recipienName = user.name;
-				break;
-			}
-		}
-		std::cout << "Message from " << senderName << " to  " << recipienName << ": " << message.content << std::endl;
-	}
+void Chat::displayMessage() {
+    for (const auto& message : messages) {
+        std::string senderName;
+        std::string recipientName;
+
+        for (const auto& user : user_list) {
+            if (user.login == message.sender) {
+                senderName = user.name;
+            }
+            if (user.login == message.recipient) {
+                recipientName = user.name;
+            }
+        }
+
+        std::cout << "Message from " << senderName << " to " << recipientName << ": " << message.content << std::endl;
+    }
 }
-const std::vector<User>& Chat::getUsers() const
-{
-	return users;
+
+const std::vector<User>& Chat::getUsers() const {
+    return user_list;
 }
